@@ -1,4 +1,4 @@
-#### SCRIPT 3/3: DATA VISUALISATION ####
+#### SCRIPT 4/4: DATA VISUALISATION ####
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
@@ -45,16 +45,16 @@ myplot <- likely_fw_df %>%
              color = rgb(0.2, 0.7, 0.1, 0.5),
              linewidth = 1) +
   scale_y_continuous(trans = "log2",
-                     limits = c(0.5, 750), #or remove for OG plot
-                     breaks = c(0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500),
-                     labels = c(0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500)) +
+                     limits = c(0.85, 600), #or remove for OG plot
+                     breaks = c(1, 2, 5, 10, 20, 50, 100, 200, 500),
+                     labels = c(1, 2, 5, 10, 20, 50, 100, 200, 500)) +
   coord_flip() +
   theme_economist() +
   theme(legend.position = "none") +
   xlab("") +
   ylab("Likely food waste diversion potential (kg per capita)")
 
-pdf("likely_fw_diversion_total_revised.pdf")
+pdf("likely_fw_diversion_total_2022.pdf")
 print(myplot)   
 dev.off()
 
@@ -102,7 +102,7 @@ for (s in state.abb) {
 real_fw_df <- real_fw_df %>%
   arrange(state, solution_level)
 
-write.csv(real_fw_df, "likely_fw_real.csv", row.names = TRUE)
+write.csv(real_fw_df, "likely_fw_real.csv", row.names = FALSE)
 
 #arrange by order of mean based on "All"
 real_fw_df <- real_fw_df %>%
@@ -118,40 +118,55 @@ real_fw_df <- real_fw_df %>%
 myplot_real <- ggplot() +
   geom_segment(data = real_fw_df[real_fw_df$solution_level == "All", ],
                aes(x = state,
+                   xend = state,
+                   y = likely_fw_alternative_low_kg_per_capita, 
+                   yend = likely_fw_alternative_high_kg_per_capita),
+               colour = "black",
+               alpha = 0.65,
+               linewidth = 0.75) +
+  geom_segment(data = real_fw_df[real_fw_df$solution_level == "All", ],
+               aes(x = state,
                    xend = state, 
                    y = likely_fw_baseline_low_kg_per_capita, 
-                   yend = likely_fw_alternative_high_kg_per_capita),
+                   yend = likely_fw_baseline_high_kg_per_capita),
                colour = "blue",
                alpha = 0.75,
                linewidth = 1.5) +
   geom_segment(data = real_fw_df[real_fw_df$solution_level == "Real", ],
                aes(x = state,
+                   xend = state,
+                   y = likely_fw_alternative_low_kg_per_capita, 
+                   yend = likely_fw_alternative_high_kg_per_capita),
+               colour = "black",
+               alpha = 0.65,
+               linewidth = 0.75) +
+  geom_segment(data = real_fw_df[real_fw_df$solution_level == "Real", ],
+               aes(x = state,
                    xend = state, 
                    y = likely_fw_baseline_low_kg_per_capita, 
-                   yend = likely_fw_alternative_high_kg_per_capita),
+                   yend = likely_fw_baseline_high_kg_per_capita),
                colour = "purple",
-               alpha = 0.75,
+               alpha = 0.85,
                linewidth = 1.5) +
   geom_point(data = real_fw_df,
              aes(x = state, y = total_fw_kg_per_capita),
              color = rgb(0.7, 0.2, 0.1, 0.5),
-             size = 2,
+             size = 1.75,
              alpha = 0.1) +
   geom_hline(yintercept = fw_target,
              color = rgb(0.2, 0.7, 0.1, 0.5),
-             linewidth = 1,
-             alpha = 0.5) +
+             linewidth = 0.85,
+             alpha = 0.75) +
   scale_y_continuous(trans = "log2",
-                     limits = c(0.5, 750),
-                     breaks = c(0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500),
-                     labels = c(0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500)) +
+                     limits = c(0.85, 600),
+                     breaks = c(1, 2, 5, 10, 20, 50, 100, 200, 500),
+                     labels = c(1, 2, 5, 10, 20, 50, 100, 200, 500)) +
   coord_flip() +
   theme_economist() +
-  theme(legend.position = "none") +
   xlab("") +
-  ylab("Likely total vs real food waste diversion potential (kg per capita)")
+  ylab("Likely food waste diversion potential (kg per capita)")
 
-pdf("likely_fw_diversion_real.pdf")
+pdf("likely_fw_diversion_real_2022.pdf")
 print(myplot_real)   
 dev.off()
 
@@ -160,7 +175,7 @@ min(real_fw_df$likely_fw_baseline_low_kg_per_capita)
 ### PLOTTING THE CONTRIBUTION OF INDIVIDUAL POLICY TYPES TOWARDS FOOD WASTE DIVERSION ###
 #for this box plot makes most sense, otherwise too many variables are displayed on the lollipop graph
 is_outlier <- function(x) {
-  return(x < quantile(x, 0.25) - 1.7 * IQR(x) | x > quantile(x, 0.75) + 1.7 * IQR(x))
+  return(x < quantile(x, 0.25) - 1.6 * IQR(x) | x > quantile(x, 0.75) + 1.6 * IQR(x))
 }
 
 myplot_bis <- likely_fw_df_alt %>%
@@ -174,12 +189,18 @@ myplot_bis <- likely_fw_df_alt %>%
   geom_jitter(color = "black", size = 0.4, alpha = 0.9) +
   scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
   geom_text_repel(aes(label = outlier), na.rm = TRUE, show.legend = F) +
+  geom_hline(yintercept = fw_target,
+             color = rgb(0.2, 0.7, 0.1, 0.5),
+             linewidth = 1,
+             alpha = 0.5) +
+  scale_y_continuous(limits = c(0, 110),
+                     breaks = c(0, 25, 50, 75, 100)) +
   theme_economist() +
   theme(legend.position = "none") +
   xlab("") +
   ylab("Likely food waste diversion potential (kg per capita)")
 
-pdf("likely_fw_diversion_per_policy_boxplot.pdf")
+pdf("likely_fw_diversion_per_policy_boxplot_2022.pdf")
 print(myplot_bis)   
 dev.off()
 

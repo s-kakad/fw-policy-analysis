@@ -1,4 +1,4 @@
-#### SCRIPT 2/3:LIKELY FOOD WASTE DIVERSION QUANTIFICATION ###
+#### SCRIPT 3/4:LIKELY FOOD WASTE DIVERSION QUANTIFICATION ###
 
 library(tidyverse)
 library(dplyr)
@@ -6,18 +6,15 @@ library(ggplot2)
 
 ### MERGING APPLICABLE FOOD WASTE WITH POLICY SCORING AND POPULATION DATA ###
 #import applicable food waste file from script 1
-applicable_fw_df <- read.csv("applicable_fw_2021.csv") ## note for further iterations the "2021" suffix will change ##
-applicable_fw_df <- applicable_fw_df[, 2:ncol(applicable_fw_df)]
-applicable_fw_df <- applicable_fw_df %>% rename(applicable_baseline = diversion_baseline,
-                           applicable_alternative = diversion_alternative)
+applicable_fw_df <- read.csv("applicable_fw_2022.csv") ## note for further iterations the "2022" suffix will change
 
 #import master file for likely food waste quantification
-total_fw_df <- read.csv("fw_masterfile_2021.csv") ## suffix as per above ##
+total_fw_df <- read.csv("fw_masterfile_2022.csv") ## suffix as per above
 
 #rename column names to remove year stamp (data still in US short tons)
-total_fw_df <- total_fw_df %>% rename(total_fw = total_fw_2021,
-                                      population = population_2021,
-                                      total_fw_tons_per_capita = total_fw_2021_tons_per_capita)
+total_fw_df <- total_fw_df %>% rename(total_fw = total_fw_2022,
+                                      population = population_2022,
+                                      total_fw_tons_per_capita = total_fw_2022_tons_per_capita)
 
 #prepare data frames for merging
 total_fw_df$state <- as.factor(total_fw_df$state)
@@ -104,6 +101,8 @@ for (s in state.abb) {
 
 likely_fw_df <- likely_fw_df %>%
   arrange(state, solution_level)
+
+rm(s, lev, tot, baseline_low, baseline_high, alternative_low, alternative_high)
 
 write.csv(likely_fw_df, "likely_fw.csv", row.names = TRUE)
 

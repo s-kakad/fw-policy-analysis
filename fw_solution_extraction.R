@@ -1,11 +1,12 @@
-#### SCRIPT 1/3: SOLUTION EXTRACTION AND APPLICABLE FOOD WASTE QUANTIFICATION ####
+#### SCRIPT 2A/4: SOLUTION EXTRACTION AND APPLICABLE FOOD WASTE QUANTIFICATION ####
 
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
 ### SOLUTION DATA EXTRACTION ###
-solutions_all_df <- read.csv("fw_solutions_dummy.csv")
+#solutions_all_df <- read.csv("fw_solutions_dummy.csv")
+solutions_all_df <- read.csv("ReFED_US_state_solutions_2022.csv")
 
 #select relevant columns
 solutions_df <- solutions_all_df %>% select(state,
@@ -20,6 +21,7 @@ solutions_df <- solutions_df %>% rename(solution_level = solution_group, diversi
 solutions_df$state <- as.factor(solutions_df$state)
 solutions_df$solution_level <- as.factor(solutions_df$solution_level)
 solutions_df$solution_name <- as.character(solutions_df$solution_name)
+solutions_df$diversion_detail <- format(round(solutions_df$diversion_detail, 3), nsmall = 3, scientific = FALSE)
 solutions_df$diversion_detail <- as.numeric(solutions_df$diversion_detail)
 
 #change state names to state abbreviation for better compatibility later on
@@ -45,7 +47,7 @@ solutions_df$solution_level <- as.factor(solutions_df$solution_level)
 solutions_df <- solutions_df %>%
   arrange(state, solution_level, solution_name)
 
-#create vectors with relevant solutions
+#create vectors with relevant solutions (where "Real" includes all but recycling levels)
 solution_levels <- c("Prevention", "Rescue", "Animal Feed", "Recycling", "All", "Real")
 
 solution_names_baseline <- c("Standardized Date Labels",
@@ -88,7 +90,7 @@ solutions_df %>%
 #run for loop that calculates applicable diversion potential per level per state
 #assign each loop run to data frame above, with both baseline and alternative scenarios
 for (s in state.abb) {
-  for (l in solution_levels[solution_levels != "All"]) {
+  for (l in solution_levels[solution_levels != "All" & solution_levels != "Real"]) {
     baseline <- solutions_df %>%
       filter(state == s & solution_level == l & solution_name %in% solution_names_baseline) %>%
       .$diversion_detail %>%
@@ -104,4 +106,4 @@ for (s in state.abb) {
 
 rm(s, l, baseline, alternative, temp)
 
-write.csv(applicable_fw_df, "applicable_fw.csv", row.names = TRUE)
+write.csv(applicable_fw_df, "applicable_fw_2022.csv", row.names = TRUE)
